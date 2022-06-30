@@ -13,5 +13,5 @@ RUN dotnet build "TodoAPI/TodoAPI.csproj" -c Release -o /app/build
 
 FROM build As publish
 WORKDIR /app
-COPY --from=publish /app/publish
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TodoAPI.dll"]
