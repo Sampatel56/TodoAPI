@@ -11,6 +11,9 @@ COPY . .
 WORKDIR "/src/TodoAPI"
 RUN dotnet build "TodoAPI/TodoAPI.csproj" -c Release -o /app/build
 
+FROM build as publish
+RUN dotnet publish "TodoAPI/TodoAPI.csproj" -c Release -o /app/publish
+
 FROM build As publish
 WORKDIR /app
 COPY --from=publish /app/publish .
