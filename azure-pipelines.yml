@@ -11,7 +11,7 @@ resources:
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '9263cbdb-186a-4d22-a74f-743eb9b459ca'
-  imageRepository: 'devopsnetcorewithsqlserveryaml'
+  imageRepository: 'todoapi'
   containerRegistry: 'todoapidemokube.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/TodoAPI/Dockerfile.txt'
   tag: '$(Build.BuildId)'
