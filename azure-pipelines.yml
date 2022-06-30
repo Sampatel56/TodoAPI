@@ -10,8 +10,8 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'fc6fe2c5-a7cd-4927-8b47-2fce9b9d9ad2'
-  imageRepository: 'devopsnetcorewithsqlserveryaml'
+  dockerRegistryServiceConnection: '9263cbdb-186a-4d22-a74f-743eb9b459ca'
+  imageRepository: 'todoapi'
   containerRegistry: 'todoapidemokube.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/TodoAPI/Dockerfile.txt'
   tag: '$(Build.BuildId)'
@@ -37,21 +37,3 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-
-    -  task: CopyFiles@2
-       displayName: Copy file
-       inputs:
-        SourceFolder: 'TodoAPI/'
-        Contents: |
-          mssql-secret.yaml
-          Todoapi.yaml
-        TargetFolder: 
-
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-
-
-
