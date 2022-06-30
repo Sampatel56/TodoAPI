@@ -38,20 +38,7 @@ stages:
         tags: |
           $(tag)
 
-    -  task: CopyFiles@2
-       displayName: Copy file
-       inputs:
-        SourceFolder: 'TodoAPI/'
-        Contents: |
-          mssql-secret.yaml
-          Todoapi.yaml
-        TargetFolder: 
 
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
 
 
 
