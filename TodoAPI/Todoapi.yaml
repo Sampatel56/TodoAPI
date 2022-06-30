@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todoapi-kubernetes
+  labels:
+    app: todoapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: todoapi
+  template:
+    metadata:
+      labels:
+        app: todoapi
+        service: todoapi
+    
+    spec:
+      containers:
+        - name: webapi
+          image: todoapidemokube.azurecr.io/todoapiapi:latest
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+          limits:
+            memory: "600Mi"
+            cpu: "0.6"
+          requests:
+            memory: "300Mi"
+            cpu: "0.3" 
+          env: 
+        - name: myconnection_string
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secret
+              key: db-connection-string
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todoapi
+  labels:
+    app: todoapi-kubernetes
+    service: todoapi
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    service: todoapi              
