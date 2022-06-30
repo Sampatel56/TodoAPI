@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
+COPY ["TodoAPI/TodoAPI.csproj" "TodoAPI/"]
+RUN dotnet restore "TodoAPI/TodoAPI.csproj"
+COPY ..
+WORKDIR "/src/TodoAPI"
+RUN dotnet build "TodoAPI/TodoAPI.csproj" -c Release -o /app/build
+
+FROM build As publish
+WORKDIR /app
+COPY --from=publish /app/publish
+ENTRYPOINT ["dotnet", "TodoAPI.dll"]
