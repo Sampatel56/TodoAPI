@@ -68,7 +68,7 @@ stages:
                     appType: 'webAppContainer'
                     WebAppName: 'interviewcicd'
                     DockerNamespace: 'interviewcicd.azurecr.io'
-                    DockerRepository: 'repo'
+                    DockerRepository: 'interviewcicd'
                     DockerImageTag: '$(Build.BuildId)'
                         
 
