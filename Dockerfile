@@ -5,7 +5,7 @@ FROM sdk AS build
 COPY . /src
 WORKDIR "/scr/"
 
-RUN dotnet restore
+RUN dotnet restore "TodoAPI/TodoAPI.csproj"
 RUN dotnet build
 
 FROM build AS publish
