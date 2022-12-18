@@ -43,7 +43,7 @@ stages:
                 command: 'buildAndPush'
                 Dockerfile: '**/Dockerfile'
                 tags: $(Build.BuildId)
-  - stage: Dev Deploy
+  - stage: Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     dependsOn: Build
     jobs:
