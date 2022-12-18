@@ -43,20 +43,20 @@ stages:
                 command: 'buildAndPush'
                 Dockerfile: '**/Dockerfile'
                 tags: $(Build.BuildId)
+
+
   - stage: Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     dependsOn: Build
     jobs:
-      - deployment: Dev Deploy
-        displayName: Dev Deploy
+      - deployment: Dev_Deploy
+        displayName: Dev_Deploy
         environment:
           name: dev env
         # variables:
         #  - template: veriablevariable-dev.yaml
         workspace:
           clean: all
-        pool:
-         vmImage: 'ubuntu-latest'
         strategy:
          runOnce:
            deploy:
