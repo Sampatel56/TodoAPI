@@ -65,5 +65,5 @@ stages:
               ConnectionType: 'AzureRM'
               azureSubscription: 'Azure subscription 1(62d23974-1452-401f-ae2f-b88e5377196d)'
               appType: 'webAppLinux'
-              WebAppName: 
+              WebAppName: 'codebasecicd'
               packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
