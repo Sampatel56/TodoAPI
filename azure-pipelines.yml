@@ -1,0 +1,47 @@
+name: Interview.$(BuildId)
+trigger:
+ branches:
+   include:
+     - main
+pool:
+ vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: build
+        pool:
+         vmImage: 'ubuntu-latest'
+        steps:
+            - task: DotNetCoreCLI@2
+              inputs:
+                command: 'restore'
+                projects: 'TodoAPI/TodoAPI.csproj'
+                feedsToUse: 'select'
+            - task: DotNetCoreCLI@2
+              inputs:
+                command: 'test'
+                projects: 'TodoAPI/TodoAPI.csproj'
+                arguments: '--logger trx'
+            - task: DotNetCoreCLI@2
+              inputs:
+                command: 'custom'
+                custom: 'tool'
+                arguments: 'install --global dotnet-ef'
+            - task: DotNetCoreCLI@2
+              inputs:
+                command: 'custom'
+                custom: 'ef'
+                arguments: 'database update --project=TodoAPI'
+            - task: DockerInstaller@0
+              inputs:
+                dockerVersion: '17.09.0-ce'
+            - task: Docker@2
+              inputs:
+                containerRegistry: 'repo'
+                repository: 'interviewcicd'
+                command: 'buildAndPush'
+                Dockerfile: '**/Dockerfile'
+                tags: $(Build.BuildId)
+
+
