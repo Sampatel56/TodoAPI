@@ -1,20 +1,20 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS sdk
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
 
-FROM sdk AS build
-COPY . /src
-WORKDIR "/scr/"
-
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
+COPY ["TodoAPI/TodoAPI.csproj", "TodoAPI/"]
 RUN dotnet restore "TodoAPI/TodoAPI.csproj"
-RUN dotnet build
+COPY . .
+WORKDIR "/src/TodoAPI"
+RUN dotnet build "TodoAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
-WORKDIR "/src/"
-RUN dotnet publish -c Release -o /app
+RUN dotnet publish "TodoAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM runtime AS final 
-WORKDIR "/app"
-COPY --from=publish /app .
-
-EXPOSE 80
-ENTRYPOINT ["dotnet", "TodoAPI.dll", "--urls", "http://*:80"] 
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "TodoAPI.dll"]
