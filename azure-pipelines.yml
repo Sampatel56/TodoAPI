@@ -51,8 +51,8 @@ stages:
         displayName: Dev-Deploy
         environment:
           name: dev-env
-        variables:
-         - template: veriablevariable-dev.yaml
+        # variables:
+        #  - template: veriablevariable-dev.yaml
         workspace:
           clean: all
         pool:
