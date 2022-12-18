@@ -43,14 +43,14 @@ stages:
                 command: 'buildAndPush'
                 Dockerfile: '**/Dockerfile'
                 tags: $(Build.BuildId)
-  - stage: Dev-Deploy
+  - stage: Dev Deploy
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     dependsOn: Build
     jobs:
-      - deployment: Dev-Deploy
-        displayName: Dev-Deploy
+      - deployment: Dev Deploy
+        displayName: Dev Deploy
         environment:
-          name: dev-env
+          name: dev env
         # variables:
         #  - template: veriablevariable-dev.yaml
         workspace:
