@@ -1,126 +1,229 @@
-﻿//const uri = 'https://localhost:7145/api/TodoItems';
-const uri = 'api/TodoItems';
-let todos = [];
+﻿// Elements
+const tasksList = document.querySelector("#tasks-list")
+const addTaskForm = document.querySelector("form#add-task")
+const addTaskInput = document.querySelector("#add-task-input")
+const clearAllTasksBtn = document.querySelector("button#clear-all-tasks")
 
-function getItems() {
-    fetch(uri)
-        .then(response => response.json())
-        .then(data => _displayItems(data))
-        .catch(error => console.error('Unable to get items.', error));
-}
+// Total List Of Tasks
+let list = JSON.parse(localStorage.getItem("tasks")) || []
 
-function addItem() {
-    const addNameTextbox = document.getElementById('add-name');
+/**
+ * Show All Tasks From Local Storage In Page
+ */
+function showTasksList() {
+  tasksList.innerHTML = ""
+  const list = JSON.parse(localStorage.getItem("tasks")) || []
 
-    const item = {
-        isComplete: false,
-        name: addNameTextbox.value.trim()
-    };
+  if (list.length === 0) {
+    clearAllTasksBtn.disabled = true
 
-    fetch(uri, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
+    const element = String.raw`
+			<div class="ui icon warning message">
+				<i class="inbox icon"></i>
+				<div class="content">
+					<div class="header">You have nothing task today!</div>
+					<div>Enter your tasks today above.</div>
+				</div>
+			</div>
+		`
+
+    tasksList.style.border = "none"
+    return tasksList.insertAdjacentHTML("beforeend", element)
+  }
+
+  clearAllTasksBtn.disabled = false
+  tasksList.style.border = "1px solid rgba(34,36,38,.15)"
+  list.reverse().forEach(task => {
+    const element = String.raw`
+				<li class="ui segment grid equal width">
+					<div class="ui checkbox column">
+						<input type="checkbox" ${task.completed ? "checked" : ""}>
+						<label>${task.text}</label>
+					</div>
+					<div class="column">
+						<i data-id="${task.id}" class="edit outline icon"></i>
+						<i data-id="${task.id}" class="trash alternate outline remove icon"></i>
+					</div>
+				</li>
+			`
+
+    tasksList.insertAdjacentHTML("beforeend", element)
+  })
+
+  document.querySelectorAll(`li i.edit`).forEach(item => {
+    item.addEventListener("click", e => {
+      e.stopPropagation()
+      showEditModal(+e.target.dataset.id)
     })
-        .then(response => response.json())
-        .then(() => {
-            getItems();
-            addNameTextbox.value = '';
-        })
-        .catch(error => console.error('Unable to add item.', error));
-}
+  })
 
-function deleteItem(id) {
-    fetch(`${uri}/${id}`, {
-        method: 'DELETE'
+  document.querySelectorAll(`li i.trash`).forEach(item => {
+    item.addEventListener("click", e => {
+      e.stopPropagation()
+      showRemoveModal(+e.target.dataset.id)
     })
-        .then(() => getItems())
-        .catch(error => console.error('Unable to delete item.', error));
+  })
 }
 
-function displayEditForm(id) {
-    const item = todos.find(item => item.id === id);
+/**
+ * Add new task to local storage
+ */
+function addTask(event) {
+  event.preventDefault()
 
-    document.getElementById('edit-name').value = item.name;
-    document.getElementById('edit-id').value = item.id;
-    document.getElementById('edit-isComplete').checked = item.isComplete;
-    document.getElementById('editForm').style.display = 'block';
+  const taskText = addTaskInput.value
+  if (taskText.trim().length === 0) {
+    return (addTaskInput.value = "")
+  }
+
+  list.push({
+    id: list.length + 1,
+    text: taskText,
+    completed: false,
+  })
+  localStorage.setItem("tasks", JSON.stringify(list))
+  addTaskInput.value = ""
+
+  showNotification("success", "Task was successfully added")
+  showTasksList()
 }
 
-function updateItem() {
-    const itemId = document.getElementById('edit-id').value;
-    const item = {
-        id: parseInt(itemId, 10),
-        isComplete: document.getElementById('edit-isComplete').checked,
-        name: document.getElementById('edit-name').value.trim()
-    };
+// Change Complete State
+function completeTask(id) {
+  // Get Task
+  const taskIndex = list.findIndex(t => t.id == id)
+  const task = list[taskIndex]
 
-    fetch(`${uri}/${itemId}`, {
-        method: 'PUT',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
-    })
-        .then(() => getItems())
-        .catch(error => console.error('Unable to update item.', error));
+  // Change State
+  task.completed = !task.completed
+  list[taskIndex] = task
 
-    closeInput();
-
-    return false;
+  // Save Changes
+  localStorage.setItem("tasks", JSON.stringify(list))
+  showTasksList()
 }
 
-function closeInput() {
-    document.getElementById('editForm').style.display = 'none';
+/**
+ * Remove task
+ */
+function removeTask(id) {
+  list = list.filter(t => t.id !== id)
+  localStorage.setItem("tasks", JSON.stringify(list))
+
+  showNotification("error", "Task was successfully deleted")
+  showTasksList()
 }
 
-function _displayCount(itemCount) {
-    const name = (itemCount === 1) ? 'to-do' : 'to-dos';
+/**
+ * Edit task
+ */
+function editTask(id) {
+  const taskText = document.querySelector("#task-text").value
 
-    document.getElementById('counter').innerText = `${itemCount} ${name}`;
+  if (taskText.trim().length === 0) return
+  const taskIndex = list.findIndex(t => t.id == id)
+
+  list[taskIndex].text = taskText
+  localStorage.setItem("tasks", JSON.stringify(list))
+
+  showNotification("success", "Task was successfully updated")
+  showTasksList()
 }
 
-function _displayItems(data) {
-    const tBody = document.getElementById('todos');
-    tBody.innerHTML = '';
+// Clear All Tasks
+function clearAllTasks() {
+  if (list.length > 0) {
+    list = []
+    localStorage.setItem("tasks", JSON.stringify(list))
+    return showTasksList()
+  }
 
-    _displayCount(data.length);
-
-    const button = document.createElement('button');
-
-    data.forEach(item => {
-        let isCompleteCheckbox = document.createElement('input');
-        isCompleteCheckbox.type = 'checkbox';
-        isCompleteCheckbox.disabled = true;
-        isCompleteCheckbox.checked = item.isComplete;
-
-        let editButton = button.cloneNode(false);
-        editButton.innerText = 'Edit';
-        editButton.setAttribute('onclick', `displayEditForm(${item.id})`);
-
-        let deleteButton = button.cloneNode(false);
-        deleteButton.innerText = 'Delete';
-        deleteButton.setAttribute('onclick', `deleteItem(${item.id})`);
-
-        let tr = tBody.insertRow();
-
-        let td1 = tr.insertCell(0);
-        td1.appendChild(isCompleteCheckbox);
-
-        let td2 = tr.insertCell(1);
-        let textNode = document.createTextNode(item.name);
-        td2.appendChild(textNode);
-
-        let td3 = tr.insertCell(2);
-        td3.appendChild(editButton);
-
-        let td4 = tr.insertCell(3);
-        td4.appendChild(deleteButton);
-    });
-
-    todos = data;
+  new Noty({
+    type: "error",
+    text: '<i class="close icon"></i> There is no task to remove.',
+    layout: "bottomRight",
+    timeout: 2000,
+    progressBar: true,
+    closeWith: ["click"],
+    theme: "metroui",
+  }).show()
 }
+
+// Clear Complete Tasks
+function clearCompleteTasks() {
+  if (list.length > 0) {
+    if (confirm("Are you sure?")) {
+      const filteredTasks = list.filter(t => t.completed !== true)
+      localStorage.setItem("tasks", JSON.stringify(filteredTasks))
+      return showTasksList()
+    }
+  }
+
+  Toastify({
+    text: "There is no task to remove",
+    duration: 3000,
+    close: true,
+    gravity: "bottom",
+    position: "left",
+    backgroundColor: "linear-gradient(to right, #e45757, #d44747)",
+    stopOnFocus: true,
+  }).showToast()
+}
+
+// Show Edit Modal And Pass Data
+function showEditModal(id) {
+  const taskIndex = list.findIndex(t => t.id == id)
+  const { text } = list[taskIndex]
+
+  document.querySelector("#edit-modal .content #task-id").value = id
+  document.querySelector("#edit-modal .content #task-text").value = text.trim()
+  document
+    .querySelector("#update-button")
+    .addEventListener("click", () => editTask(+id))
+
+  $("#edit-modal.modal").modal("show")
+}
+
+// Show Remove Modal
+function showRemoveModal(id) {
+  document
+    .querySelector("#remove-button")
+    .addEventListener("click", () => removeTask(+id))
+
+  $("#remove-modal.modal").modal("show")
+}
+
+// Show Clear All Tasks Modal
+function showClearAllTasksModal() {
+  if (list.length > 0) {
+    return $("#clear-all-tasks-modal.modal").modal("show")
+  }
+
+  new Noty({
+    type: "error",
+    text: '<i class="close icon"></i> There is no task to remove.',
+    layout: "bottomRight",
+    timeout: 2000,
+    progressBar: true,
+    closeWith: ["click"],
+    theme: "metroui",
+  }).show()
+}
+
+function showNotification(type, text) {
+  new Noty({
+    type,
+    text: `<i class="check icon"></i> ${text}`,
+    layout: "bottomRight",
+    timeout: 2000,
+    progressBar: true,
+    closeWith: ["click"],
+    theme: "metroui",
+  }).show()
+}
+
+// Event Listeners
+addTaskForm.addEventListener("submit", addTask)
+window.addEventListener("load", () => addTaskInput.focus())
+
+showTasksList()
